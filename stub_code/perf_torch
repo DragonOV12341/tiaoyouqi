@@ -1,0 +1,27 @@
+[torch_conv2d]
+using cuda:0
+---------------------------------------------------
+conv2d test case: 0
+median time: 17.721 ms
+TFLOPS:  0.013
+---------------------------------------------------
+conv2d test case: 1
+median time: 0.417 ms
+TFLOPS:  0.2772
+---------------------------------------------------
+conv2d test case: 2
+median time: 0.193 ms
+TFLOPS:  0.599
+---------------------------------------------------
+conv2d test case: 3
+median time: 0.211 ms
+TFLOPS:  8.9452
+---------------------------------------------------
+conv2d test case: 4
+median time: 0.196 ms
+TFLOPS:  5.4168
+---------------------------------------------------
+conv2d test case: 5
+median time: 0.162 ms
+TFLOPS:  2.9127
+

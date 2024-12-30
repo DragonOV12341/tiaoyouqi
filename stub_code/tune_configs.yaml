@@ -1089,3 +1089,77 @@ conv2d:
   num_warps: 2
   num_stages: 4
 
+pool:
+- META:
+    BLOCK_NI_HO_WO: 128
+    BLOCK_CI: 128
+    BLOCK_CO: 64
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 128
+    BLOCK_CI: 64
+    BLOCK_CO: 32
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 64
+    BLOCK_CI: 64
+    BLOCK_CO: 64
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 64
+    BLOCK_CI: 16
+    BLOCK_CO: 16
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 256
+    BLOCK_CI: 16
+    BLOCK_CO: 16
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 128
+    BLOCK_CI: 16
+    BLOCK_CO: 16
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 32
+    BLOCK_CI: 16
+    BLOCK_CO: 16
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 256
+    BLOCK_CI: 16
+    BLOCK_CO: 32
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 128
+    BLOCK_CI: 16
+    BLOCK_CO: 32
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 64
+    BLOCK_CI: 64
+    BLOCK_CO: 32
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 64
+    BLOCK_CI: 32
+    BLOCK_CO: 32
+  num_warps: 2
+  num_stages: 4
+- META:
+    BLOCK_NI_HO_WO: 128
+    BLOCK_CI: 32
+    BLOCK_CO: 32
+  num_warps: 2
+  num_stages: 4
+

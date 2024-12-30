@@ -1,6 +1,5 @@
 
 from typing import List
-
 import torch
 import torch.nn as nn
 import torch_mlir
@@ -12,6 +11,8 @@ from torch._functorch.aot_autograd import (
     set_model_name,
 )
 
+import time
+import random
 import gc
 import sys
 from unittest.mock import patch
@@ -50,9 +51,12 @@ class UserInputInfo :
         if platName == 'mlu':
             print("current platform = mlu")
     
+def SleepRandomly(min_val,max_val) :
+    sec = random.randint(min_val,max_val)
+    time.sleep(sec)    
 
-class Operator :
-    def __init__(self):
-        pass
-    def runOperator():
-        torch.conv2d()
+# class Operator :
+#     def __init__(self):
+#         pass
+#     def runOperator():
+#         torch.conv2d()

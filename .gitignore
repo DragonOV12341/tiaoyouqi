@@ -2,3 +2,5 @@ npu_test/conv_exsample/build
 npu_test/matmul_exsample/build
 npu_test/pool_exsample/build
 stub_code/__pycache__
+codgendir/kcg_kernel-*.hsaco
+__pycache__/

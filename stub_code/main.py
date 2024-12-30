@@ -8,14 +8,16 @@
 import subprocess
 from internal import *
 from model_manager import *
+from global_status import *
     
 def main_process(info : UserInputInfo) :
     # model_path = '/home/xushilong/tiaoyouqi/stub_code/VGG19.py'
     # logPath = '/home/xushilong/tiaoyouqi/stderr_output.txt'
     model_path = info.m_modelFilePath
     irPath = '/home/xushilong/tiaoyouqi/model_ir.mlir'
-    
+    codegenpath = '/home/xushilong/tiaoyouqi/codgendir'
     print("reading model & convert into IR ...")
+    GlobalStatus().set_runningStatus("Parsing Models")
     cmd = ["python","model_manager.py",model_path]
 
     Model,ModelInputs,RunModel = import_model(model_path) 
@@ -23,7 +25,7 @@ def main_process(info : UserInputInfo) :
         subprocess.call(cmd,stdout=f,stderr=f)
         print("convert model OK !")
     # analysis model operators
-    mm = ModelManager()
+    mm = ModelManager(codegenPath=codegenpath)
     mm.analysis(irPath)
     # codegen
     mm.codegen()

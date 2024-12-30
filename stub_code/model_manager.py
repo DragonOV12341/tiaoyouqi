@@ -1,5 +1,6 @@
 
 import random
+import string
 from time import sleep
 from typing import List
 
@@ -28,13 +29,11 @@ import importlib.util
 
 from internal import import_model
 import yaml
+import shutil
 
-
-
-    
 
 class OperatorManager :
-    def __init__(self,kind_ : str) :
+    def __init__(self,kind_,codegenPath : str) :
         self.kind = kind_
         self.configs = []
         self._config_yaml = None
@@ -43,34 +42,70 @@ class OperatorManager :
             with open(path,'r') as f :
                 self._config_yaml = yaml.safe_load(f)
         self.configs = self._config_yaml[self.kind]
-        
+        self.codegenPath = codegenPath
+
+    def getRandSuffix(self,digits=5) :
+        min_val = 10**(digits - 1)
+        max_val = 10**digits - 1
+        return random.randint(min_val,max_val)
+    
     def ConfigYaml(self) :
         return self._config_yaml
     
-    def codegen(self) :
-        pass
+    def codegen(self,index) :
+        cfg = self.configs[index]
+        print(f"=== generatecode for configs[{index}]")
+        sleep(1)
+        tempName = "kcg_kernel"
+        srcName = f"/home/xushilong/tiaoyouqi/{tempName}.hsaco"
+        dstName = f"{self.codegenPath}/kcg_kernel-{self.kind}-{index}.hsaco"
+        shutil.copy(srcName,dstName)
+        print(f"=== generate finish ===")
+        return dstName
     
-    def test_config(self, cfg):
-        print("=== testing cfg : ")
-        print(cfg)
-        elapsed_time = random(20,30)
-        
-        pass
-    def auto_tuning(self) :
-        minTime = 0
-        for config in self.configs :
+    def run_test(self,index) :
+        print(f"perfoming test : {self.kind} : [{index}]")
+        if self.kind == 'conv2d' :
+            eps_ms = random.randint(5,10)
+            sleep(eps_ms * 1e-3)
+        if self.kind == 'mm' :
+            eps_ms = random.randint(5,10)
+            sleep(eps_ms * 1e-3)
+        if self.kind == 'pool' :
+            eps_ms = random.randint(5,15)
+            sleep(eps_ms * 1e-3)
+        return eps_ms
+    
+    def auto_tune(self) :
+        times = []
+        for i in range(len(self.configs)) :
+            config = self.configs[i]
             print("testing config : ")
             print(config)
+            hsacoName = self.codegen(i)
+            epsTime = self.run_test(i)
+            times.append(epsTime)
             sleep(1)
-        print("===== get best config for op : ", self.configs[random(0,len(self.configs))])
+        # get best config :
+        bestTime = 10**5; bestIndex = -1 
+        for i in range(len(times)) : 
+            if times[i] < bestTime :
+                bestTime = times[i]
+                bestIndex = i
+        print(f"===== get best for op {self.kind} : time:{bestTime} - [{bestIndex}]")
 
+def generate_random_string(length):
+    characters = string.digits + string.ascii_lowercase  # 包含数字0-9和小写字母a-z的字符集
+    return ''.join(random.choice(characters) for _ in range(length))
 
 class ModelManager :
-    def __init__(self):
+    def __init__(self,codegenPath):
         self.conv2dCount = 0
         self.mmCount = 0
         self.poolCount = 0
-        pass
+        self.opManager_mm = OperatorManager('mm',codegenPath)
+        self.opManager_conv = OperatorManager('conv2d',codegenPath)
+        self.opManager_pool = OperatorManager('pool',codegenPath)
         
     def convert_model_to_torchIR(self,model,inputs):
         # model definition
@@ -83,33 +118,30 @@ class ModelManager :
         from torch_mlir.compiler_utils import OutputType
         # mm = torch_mlir.compiler_utils.lower_mlir_module(module=m,output_type=OutputType.LINALG_ON_TENSORS,verbose=False)
     
-    def codegen(self,model) :
+    def codegen(self) :
         # generate kernel hsaco
         # 生成 matmul 、conv和pool的IR，以及hsaco (从预生产的位置拷贝)
         # Runmodel : 调用模型的 RunModel方法即可（dcu、mlu、npu通用）
         for i in range(self.mmCount) :
             print(f" ======== generating matmul op codes. [{i}/{self.mmCount}] ========")
-            sleep(1)
+            self.opManager_mm.auto_tune()
         for i in range(self.conv2dCount) :
             print(f" ======== generating conv2d codes. [{i}/{self.conv2dCount}] ========")
-            sleep(1)
+            self.opManager_conv.auto_tune()
         for i in range(self.poolCount) :
             print(f" ======== generating pool codes. current op[{i}/{self.poolCount}] ========")
-            sleep(1)
-        pass
+            self.opManager_pool.auto_tune()
     
     def autotune(self) :
-        opManager_mm = OperatorManager('mm')
-        opManager_conv = OperatorManager('conv2d')
-        opManager_pool = OperatorManager('maxpool')
-        opManager_mm.auto_tuning()
+        pass
+        # opManager_mm.auto_tuning()
     
     def build_hook_of_ops(self):
         # 对op进行重定向到最优kernel的调用点
         pass
         
     def analysis(self,file_path) :
-        print("collecting IR operators ...")
+        print(f"collecting IR operators in {file_path}")
         lines = []
         with open(file_path,'r') as f:
             lines = f.readlines()
@@ -127,11 +159,12 @@ class ModelManager :
         print("     conv2d count = ", self.conv2dCount)
         print("     gemm count   = ", self.mmCount)
         print("     pool2d count = ", self.poolCount)
-
+        print("===============")
 
 
 if __name__ == "__main__":
     model_path = sys.argv[1]
-    mm = ModelManager()
+    codegenPath = "/home/xushilong/tiaoyouqi/codgendir"
+    mm = ModelManager(codegenPath=codegenPath)
     Model,ModelInputs,RunModel = import_model(model_path)
     mm.convert_model_to_torchIR(Model,ModelInputs)
