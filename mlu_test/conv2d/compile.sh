@@ -1,0 +1,1 @@
+cncc conv2d.cpp -o conv2d -lcnnl -lcnrt -lcndrv -std=c++11 -fPIC -lstdc++ -lm -I${NEUWARE_HOME}/include -L${NEUWARE_HOME}/lib64

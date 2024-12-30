@@ -1,0 +1,1 @@
+hipcc pooling.cpp -o pool -w -lrocblas -lMIOpen -lhiprtc -std=c++17 -fPIC -lstdc++ -I${DTK_HOME}/include -L${DTK_HOME}/lib64 

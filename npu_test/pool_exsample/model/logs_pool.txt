@@ -1,0 +1,10 @@
+TFLOPS of pooling case0: 0.002
+TFLOPS of pooling case1: 0.001
+TFLOPS of pooling case0: 0.002
+TFLOPS of pooling case1: 0.001
+TFLOPS of pooling case2: 0.0
+TFLOPS of pooling case3: 0.005
+TFLOPS of pooling case4: 0.0
+TFLOPS of pooling case5: 0.009
+TFLOPS of pooling case5: 0.181
+TFLOPS of pooling case4: 0.006
