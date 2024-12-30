@@ -225,4 +225,12 @@ def GetModel() :
     return resnet50()
 
 def GetInputs() :
-    return torch.randn([512,512])
+    return torch.randn([3,3,512,512])
+
+
+def RunModel():
+	import torch
+	net = GetModel()
+	input = GetInputs()
+	output = net(input)
+	print(output)

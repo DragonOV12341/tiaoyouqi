@@ -21,8 +21,8 @@ from torch_mlir import fx
 
 from torch_mlir.compiler_utils import run_pipeline_with_repro_report
 import torch_mlir.compiler_utils
-from VGG19 import VGG19
-from resnet50 import ResNet,resnet50
+# from VGG19 import VGG19
+# from resnet50 import ResNet,resnet50
 import importlib.util
 
 

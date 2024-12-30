@@ -23,8 +23,8 @@ from torch_mlir import fx
 
 from torch_mlir.compiler_utils import run_pipeline_with_repro_report
 import torch_mlir.compiler_utils
-from VGG19 import VGG19
-from resnet50 import ResNet,resnet50
+# from VGG19 import VGG19
+# from resnet50 import ResNet,resnet50
 import importlib.util
 
 from internal import import_model
@@ -55,7 +55,7 @@ class OperatorManager :
     def codegen(self,index) :
         cfg = self.configs[index]
         print(f"=== generatecode for configs[{index}]")
-        sleep(1)
+        sleep(0.1)
         tempName = "kcg_kernel"
         srcName = f"/home/xushilong/tiaoyouqi/{tempName}.hsaco"
         dstName = f"{self.codegenPath}/kcg_kernel-{self.kind}-{index}.hsaco"
@@ -85,7 +85,7 @@ class OperatorManager :
             hsacoName = self.codegen(i)
             epsTime = self.run_test(i)
             times.append(epsTime)
-            sleep(1)
+            # sleep(1)
         # get best config :
         bestTime = 10**5; bestIndex = -1 
         for i in range(len(times)) : 

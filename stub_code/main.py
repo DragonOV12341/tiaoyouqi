@@ -36,4 +36,5 @@ def main_process(info : UserInputInfo) :
 
 
 if __name__ == "__main__":
-    main_process(UserInputInfo('/home/xushilong/tiaoyouqi/stub_code/VGG19.py','dcu'))
+    modelPath = '/home/xushilong/tiaoyouqi/sample_model/resnet50.py'
+    main_process(UserInputInfo(modelPath,'dcu'))
