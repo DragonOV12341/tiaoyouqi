@@ -44,19 +44,6 @@ class UserInputInfo :
         self.m_platName = platName
     
     def set_platform(platName : str) : 
-        if platName == 'dcu':
-            print("current platform = dcu")
-        if platName == 'npu':
-            print("current platform = npu")
-        if platName == 'mlu':
-            print("current platform = mlu")
-    
-def SleepRandomly(min_val,max_val) :
-    sec = random.randint(min_val,max_val)
-    time.sleep(sec)    
-
-# class Operator :
-#     def __init__(self):
-#         pass
-#     def runOperator():
-#         torch.conv2d()
+        if platName == 'dcu' or platName == 'npu' or platName == 'mlu':
+            print(f"current platform = {platName}")
+        assert("invalid platform" and False)

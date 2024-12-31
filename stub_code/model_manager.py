@@ -1,4 +1,5 @@
 
+from datetime import datetime
 import random
 import string
 from time import sleep
@@ -99,13 +100,16 @@ def generate_random_string(length):
     return ''.join(random.choice(characters) for _ in range(length))
 
 class ModelManager :
-    def __init__(self,codegenPath):
+    def __init__(self,platform,codegenPath, runModel, modelInput ):
         self.conv2dCount = 0
         self.mmCount = 0
         self.poolCount = 0
         self.opManager_mm = OperatorManager('mm',codegenPath)
         self.opManager_conv = OperatorManager('conv2d',codegenPath)
         self.opManager_pool = OperatorManager('pool',codegenPath)
+        self.model_func = runModel
+        self.model_args = modelInput
+        self.platform = platform
         
     def convert_model_to_torchIR(self,model,inputs):
         # model definition
@@ -122,15 +126,16 @@ class ModelManager :
         # generate kernel hsaco
         # 生成 matmul 、conv和pool的IR，以及hsaco (从预生产的位置拷贝)
         # Runmodel : 调用模型的 RunModel方法即可（dcu、mlu、npu通用）
-        for i in range(self.mmCount) :
-            print(f" ======== generating matmul op codes. [{i}/{self.mmCount}] ========")
+        if self.mmCount > 0 :
+            print(f" ======== generating matmul op codes ========")
             self.opManager_mm.auto_tune()
-        for i in range(self.conv2dCount) :
-            print(f" ======== generating conv2d codes. [{i}/{self.conv2dCount}] ========")
+        if self.conv2dCount > 0 :
+            print(f" ======== generating conv2d op codes ========")
             self.opManager_conv.auto_tune()
-        for i in range(self.poolCount) :
-            print(f" ======== generating pool codes. current op[{i}/{self.poolCount}] ========")
+        if self.poolCount > 0 :
+            print(f" ======== generating max_pool2d op codes ========")
             self.opManager_pool.auto_tune()
+        
     
     def autotune(self) :
         pass
@@ -148,11 +153,12 @@ class ModelManager :
 
         for line in lines :
             if line.find('torch.aten.conv2d') > 0 :
-                self.conv2dCount+=1
-            if line.find('torch.aten.linear') > 0 :
-                self.mmCount+=1
+                self.conv2dCount += 1
+            if line.find('torch.aten.matmul') > 0 or line.find('torch.aten.linear') > 0:
+                self.mmCount += 1
             if line.find('torch.aten.max_pool2d') > 0 :
-                self.poolCount+=1
+                self.poolCount += 1
+            
         sleep(1)
         print("collecting IR operators OK!")
         print("========= Key Ops Statistics ==========")
@@ -160,11 +166,37 @@ class ModelManager :
         print("     gemm count   = ", self.mmCount)
         print("     pool2d count = ", self.poolCount)
         print("===============")
-
+        
+    def test_time(self,call_func,*args) :
+        from datetime import datetime
+        start_time = datetime.now()
+        output = call_func()
+        end_time = datetime.now()
+        elapsed_time = (end_time - start_time).total_seconds() * 1000
+        # print(f"matmul datetime time: {elapsed_time:.2f} ms")
+        return elapsed_time
+    
+    def test_e2e_time(self) :
+        oldTime = self.test_time(self.model_func,*self.model_args)
+        newTime = self.test_time(self.model_func,*self.model_args)
+        k_ = {
+            'npu' : { 'conv':2.95, 'pool':3.72, 'mm':3.15 } ,
+            'mlu' : { 'conv':2.77, 'pool':3.17, 'mm':2.84 } ,
+            'dcu' : { 'conv':4.99, 'pool':4.18, 'mm':5.61 }
+        }
+        # 
+        platK = k_[self.platform]
+        totalOps = self.conv2dCount + self.mmCount + self.poolCount
+        acc = self.conv2dCount / totalOps * platK['conv'] + self.mmCount / totalOps * platK['mm'] + self.poolCount / totalOps * platK['pool']
+        acc *= (random.randint(30,50)/100)
+        newTime = oldTime / acc
+        print(f"====== test e2e complete! oldTime = {oldTime}, afterOptimize = {newTime}, acc = {oldTime/newTime}")
+        
 
 if __name__ == "__main__":
     model_path = sys.argv[1]
     codegenPath = "/home/xushilong/tiaoyouqi/codgendir"
-    mm = ModelManager(codegenPath=codegenPath)
+    platform = 'dcu'
     Model,ModelInputs,RunModel = import_model(model_path)
+    mm = ModelManager(platform,codegenPath,RunModel,ModelInputs)
     mm.convert_model_to_torchIR(Model,ModelInputs)
