@@ -32,6 +32,8 @@ from internal import import_model
 import yaml
 import shutil
 
+from user_interface import UserInterface
+
 
 class OperatorManager :
     def __init__(self,kind_,codegenPath : str) :
@@ -39,7 +41,7 @@ class OperatorManager :
         self.configs = []
         self._config_yaml = None
         if self._config_yaml is None :
-            path = '/home/xushilong/tiaoyouqi/stub_code/tune_configs.yaml'
+            path = UserInterface().m_tuningConfigFile
             with open(path,'r') as f :
                 self._config_yaml = yaml.safe_load(f)
         self.configs = self._config_yaml[self.kind]
@@ -56,9 +58,9 @@ class OperatorManager :
     def codegen(self,index) :
         cfg = self.configs[index]
         print(f"=== generatecode for configs[{index}]")
-        sleep(0.1)
+        sleep(0.15)
         tempName = "kcg_kernel"
-        srcName = f"/home/xushilong/tiaoyouqi/{tempName}.hsaco"
+        srcName = f"{UserInterface().cwd}/{tempName}.hsaco"
         dstName = f"{self.codegenPath}/kcg_kernel-{self.kind}-{index}.hsaco"
         shutil.copy(srcName,dstName)
         print(f"=== generate finish ===")
@@ -67,13 +69,13 @@ class OperatorManager :
     def run_test(self,index) :
         print(f"perfoming test : {self.kind} : [{index}]")
         if self.kind == 'conv2d' :
-            eps_ms = random.randint(5,10)
+            eps_ms = random.randint(50,100)
             sleep(eps_ms * 1e-3)
         if self.kind == 'mm' :
-            eps_ms = random.randint(5,10)
+            eps_ms = random.randint(50,100)
             sleep(eps_ms * 1e-3)
         if self.kind == 'pool' :
-            eps_ms = random.randint(5,15)
+            eps_ms = random.randint(50,150)
             sleep(eps_ms * 1e-3)
         return eps_ms
     
@@ -126,6 +128,7 @@ class ModelManager :
         # generate kernel hsaco
         # 生成 matmul 、conv和pool的IR，以及hsaco (从预生产的位置拷贝)
         # Runmodel : 调用模型的 RunModel方法即可（dcu、mlu、npu通用）
+        UserInterface().set_runningStatus('generating operator codes & perform tuning...')
         if self.mmCount > 0 :
             print(f" ======== generating matmul op codes ========")
             self.opManager_mm.auto_tune()
@@ -135,6 +138,7 @@ class ModelManager :
         if self.poolCount > 0 :
             print(f" ======== generating max_pool2d op codes ========")
             self.opManager_pool.auto_tune()
+        UserInterface().set_runningStatus('operator codegen & tune OK ')
         
     
     def autotune(self) :
@@ -146,6 +150,7 @@ class ModelManager :
         pass
         
     def analysis(self,file_path) :
+        UserInterface().set_runningStatus('Analyzing model operators ...')
         print(f"collecting IR operators in {file_path}")
         lines = []
         with open(file_path,'r') as f:
@@ -160,6 +165,7 @@ class ModelManager :
                 self.poolCount += 1
             
         sleep(1)
+        UserInterface().set_runningStatus('analyze operators OK ')
         print("collecting IR operators OK!")
         print("========= Key Ops Statistics ==========")
         print("     conv2d count = ", self.conv2dCount)
@@ -177,6 +183,7 @@ class ModelManager :
         return elapsed_time
     
     def test_e2e_time(self) :
+        UserInterface().set_runningStatus('testing e2e performance ...')
         oldTime = self.test_time(self.model_func,*self.model_args)
         newTime = self.test_time(self.model_func,*self.model_args)
         k_ = {
@@ -191,12 +198,13 @@ class ModelManager :
         acc *= (random.randint(30,50)/100)
         newTime = oldTime / acc
         print(f"====== test e2e complete! oldTime = {oldTime}, afterOptimize = {newTime}, acc = {oldTime/newTime}")
-        
+        UserInterface().set_runningStatus('testing e2e performance OK')
 
 if __name__ == "__main__":
-    model_path = sys.argv[1]
-    codegenPath = "/home/xushilong/tiaoyouqi/codgendir"
-    platform = 'dcu'
-    Model,ModelInputs,RunModel = import_model(model_path)
-    mm = ModelManager(platform,codegenPath,RunModel,ModelInputs)
+    userinfo = sys.argv[1]
+    print(f'userinfo={userinfo}')
+    UserInterface().build_with_jsonstr(userinfo)
+    
+    Model,ModelInputs,RunModel = import_model(UserInterface().m_modelFilePath)
+    mm = ModelManager(UserInterface().m_platName,UserInterface().m_codegenPath,RunModel,ModelInputs)
     mm.convert_model_to_torchIR(Model,ModelInputs)

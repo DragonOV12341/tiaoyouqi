@@ -38,12 +38,3 @@ def import_model(file_path : str) :
     return (Model,ModelInputs,RunModel)
 
 
-class UserInputInfo :
-    def __init__(self, modelPath:str, platName : str):
-        self.m_modelFilePath = modelPath
-        self.m_platName = platName
-    
-    def set_platform(platName : str) : 
-        if platName == 'dcu' or platName == 'npu' or platName == 'mlu':
-            print(f"current platform = {platName}")
-        assert("invalid platform" and False)
