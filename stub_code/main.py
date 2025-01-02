@@ -11,8 +11,8 @@ from model_manager import *
 from user_interface import *
     
 def main_process(info : UserInterface) :
-    model_path = '/home/xushilong/tiaoyouqi/stub_code/VGG19.py'
-    logPath = '/home/xushilong/tiaoyouqi/stderr_output.txt'
+    # model_path = '/home/xushilong/tiaoyouqi/stub_code/VGG19.py'
+    # logPath = '/home/xushilong/tiaoyouqi/stderr_output.txt'
     model_path = info.m_modelFilePath
     outirPath = info.m_tempPath + '/model_ir.mlir'
     codegenpath = info.m_codegenPath
